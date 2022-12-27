@@ -33,7 +33,7 @@ conf = {
 }
 
 # Load the model
-ckpt = 'deeplsd_md.tar'
+ckpt = 'deeplsd_wireframe.tar'
 ckpt = torch.load(str(ckpt), map_location='cpu')
 net = DeepLSD(conf)
 net.load_state_dict(ckpt['model'])
@@ -43,6 +43,15 @@ net = net.to(device).eval()
 inputs = torch.tensor(gray_img, dtype=torch.float, device=device)[None, None] / 255.
 with torch.no_grad():
     df, line_level = net(inputs)
+
+    torch.onnx.export(net,  # model being run
+                      inputs,  # model input (or a tuple for multiple inputs)
+                      "deeplsd.onnx",  # where to save the model (can be a file or file-like object)
+                      export_params=True,  # store the trained parameter weights inside the model file
+                      opset_version=11,  # the ONNX version to export the model to
+                      do_constant_folding=True,  # whether to execute constant folding for optimization
+                      input_names=['input'],  # the model's input names
+                      output_names=['distance_field', 'line_level'])
 
     df = np.squeeze(df.cpu().numpy())
     line_level = np.squeeze(line_level.cpu().numpy())
