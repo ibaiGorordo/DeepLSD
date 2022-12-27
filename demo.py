@@ -43,7 +43,7 @@ net = net.to(device).eval()
 inputs = torch.tensor(gray_img, dtype=torch.float, device=device)[None, None] / 255.
 with torch.no_grad():
     df, line_level = net(inputs)
-    
+
     df = np.squeeze(df.cpu().numpy())
     line_level = np.squeeze(line_level.cpu().numpy())
 
@@ -52,6 +52,6 @@ with torch.no_grad():
     cv2.waitKey(0)
     cv2.imwrite('flow_img.png', flow_img)
 
-    # import matplotlib.pyplot as plt
-    # plt.imshow(np.squeeze(df.numpy()))
-    # plt.show()
+    import matplotlib.pyplot as plt
+    plt.imshow(df)
+    plt.show()
