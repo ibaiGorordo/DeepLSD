@@ -14,7 +14,6 @@ from ..geometry.line_utils import (merge_lines,
 from ..geometry.homography_adaptation import torch_homography_adaptation
 from ..utils.tensor import preprocess_angle
 from pytlsd import lsd
-from line_refinement import line_optim
 
 
 class DeepLSD(BaseModel):
@@ -181,23 +180,6 @@ class DeepLSD(BaseModel):
         # Optimize the lines with respect to the DF and line level
         vps = np.array([])
         vp_labels = np.array([-1] * len(lines))
-        if optimize:
-            if merge:
-                lines = merge_lines(lines, thresh=4,
-                                    overlap_thresh=0).astype(np.float32)
-
-            rows, cols = df.shape
-            angle, _ = preprocess_angle(
-                line_level - np.pi / 2, img)
-            orientations = get_line_orientation(lines[:, :, [1, 0]],
-                                                angle)[:, None]
-            oriented_lines = np.concatenate([lines.reshape(-1, 4),
-                                             orientations], axis=1)
-            lines, vp_labels, vps = line_optim(
-                oriented_lines, (df ** (1/4)).flatten(), angle.flatten(),
-                rows, cols, use_vps, optimize_vps,
-                lambda_df, lambda_grad, lambda_vp)
-            lines = np.array(lines).reshape(-1, 2, 2).astype(np.float32)
 
         # Merge close-by lines together
         if merge and not optimize:
